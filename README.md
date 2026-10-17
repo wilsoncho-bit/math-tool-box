@@ -143,4 +143,4 @@ http://localhost:8000
 
 ## License
 
-MIT-0
+Released under the MIT-0 License. Free to use, modify, distribute, and commercialize without attribution or preserving the license notice. Provided “AS IS,” without warranty.
