@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正整數因數查詢</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px #0001;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .display {
+            width: 100%;
+            min-height: 65px;
+            padding: 14px 18px;
+            margin: 15px 0 20px;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: right;
+            color: #1e293b;
+            overflow-wrap: anywhere;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        button {
+            min-height: 62px;
+            padding: 12px;
+            font-size: 23px;
+            font-weight: bold;
+            color: #334155;
+            background: #edf2f7;
+            border: 1px solid #d5deea;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        button:hover {
+            background: #dbeafe;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .clear {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .clear:hover {
+            background: #fecaca;
+        }
+
+        .delete {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .delete:hover {
+            background: #fde68a;
+        }
+
+        .zero {
+            grid-column: 1 / 2;
+        }
+
+        .query {
+            grid-column: 2 / 4;
+            background: #2878d0;
+            color: white;
+            border-color: #2878d0;
+        }
+
+        .query:hover {
+            background: #185ca5;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 19px;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+
+        #count {
+            color: #2878d0;
+            font-weight: bold;
+        }
+
+        .factor {
+            display: inline-block;
+            margin: 4px;
+            padding: 6px 12px;
+            background: #e5f0ff;
+            color: #185ca5;
+            border-radius: 8px;
+        }
+
+        .hint {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+        .theme-toggle {
+            position: fixed; top: 16px; right: 16px; z-index: 10;
+            padding: 9px 13px; border: 1px solid #d5deea; border-radius: 999px;
+            background: #fff; color: #2c3e50; font-size: 14px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 4px 15px #0001;
+        }
+        body.light-theme { background: #f5f7fa; color: #2c3e50; }
+        body.light-theme .container { background: #fff; }
+        body.light-theme .display { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; }
+        body.light-theme .factor { background: #e5f0ff; color: #185ca5; }
+        body.dark-theme { color-scheme: dark; background: #080d1c; color: #eef3ff; }
+        body.dark-theme .container { background: #121b33; color: #eef3ff; box-shadow: 0 12px 36px #0005; }
+        body.dark-theme h1 { color: #eef3ff; }
+        body.dark-theme .display { background: #0c1428; color: #eef3ff; border-color: #394665; }
+        body.dark-theme button { color: #e4eaff; background: #202d4b; border-color: #394665; }
+        body.dark-theme button:hover { background: #2a3b63; }
+        body.dark-theme .clear { background: #512c3b; color: #ffc4cf; }
+        body.dark-theme .delete { background: #514128; color: #ffe0a0; }
+        body.dark-theme .query { background: #5267e8; color: #fff; border-color: #5267e8; }
+        body.dark-theme #count { color: #8de6ff; }
+        body.dark-theme .factor { background: #203b61; color: #b9dcff; }
+        body.dark-theme .hint { color: #a3afcf; }
+        body.dark-theme .theme-toggle { color: #eef3ff; background: #172442; border-color: #394665; }
+    </style>
+</head>
+
+<body class="light-theme">
+    <button class="theme-toggle" id="themeToggle" type="button">🌙 暗色</button>
+    <div class="container">
+        <h1>正整數因數查詢</h1>
+        <p>請使用下方數字鍵盤輸入正整數</p>
+
+        <div id="display" class="display"
+             role="status" aria-live="polite">0</div>
+
+        <div class="keypad">
+            <button type="button" onclick="pressDigit('7')">7</button>
+            <button type="button" onclick="pressDigit('8')">8</button>
+            <button type="button" onclick="pressDigit('9')">9</button>
+
+            <button type="button" onclick="pressDigit('4')">4</button>
+            <button type="button" onclick="pressDigit('5')">5</button>
+            <button type="button" onclick="pressDigit('6')">6</button>
+
+            <button type="button" onclick="pressDigit('1')">1</button>
+            <button type="button" onclick="pressDigit('2')">2</button>
+            <button type="button" onclick="pressDigit('3')">3</button>
+
+            <button type="button" class="zero"
+                    onclick="pressDigit('0')">0</button>
+            <button type="button" class="delete"
+                    onclick="deleteDigit()">⌫ 退格</button>
+
+            <button type="button" class="clear"
+                    onclick="clearInput()">清除</button>
+            <button type="button" class="query"
+                    onclick="findFactors()">列出所有因數</button>
+        </div>
+
+        <p class="hint">也可以使用實體鍵盤輸入、Enter 查詢、Backspace 刪除、Esc 清除。</p>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let numberText = "";
+
+        const display = document.getElementById("display");
+        const result = document.getElementById("result");
+
+        // 更新顯示畫面
+        function updateDisplay() {
+            display.textContent = numberText || "0";
+        }
+
+        // 輸入數字
+        function pressDigit(digit) {
+            // 避免輸入超過 JavaScript 安全整數範圍
+            const next = numberText + digit;
+
+            if (next.length > 16 ||
+                !Number.isSafeInteger(Number(next))) {
+                result.textContent = "數字太大，請重新輸入！";
+                return;
+            }
+
+            // 移除前導零
+            numberText = (numberText + digit).replace(/^0+/, "");
+
+            updateDisplay();
+            result.innerHTML = "";
+        }
+
+        // 刪除最後一位
+        function deleteDigit() {
+            numberText = numberText.slice(0, -1);
+            updateDisplay();
+            result.innerHTML = "";
+        }
+
+        // 清除全部
+        function clearInput() {
+            numberText = "";
+            updateDisplay();
+            result.innerHTML = "";
+        }
+
+        // 查詢所有正因數
+        function findFactors() {
+            const n = Number(numberText);
+
+            if (!numberText || !Number.isSafeInteger(n) || n < 1) {
+                result.textContent = "請輸入有效的正整數！";
+                return;
+            }
+
+            const small = [];
+            const large = [];
+
+            // 只需要檢查到平方根
+            for (let i = 1; i <= n / i; i++) {
+                if (n % i === 0) {
+                    small.push(i);
+
+                    // 配對因數，避免平方根重複
+                    if (i !== n / i) {
+                        large.push(n / i);
+                    }
+                }
+            }
+
+            const factors = small.concat(large.reverse());
+
+            result.innerHTML =
+                `<p>${n} 的因數共有 ` +
+                `<span id="count">${factors.length}</span> 個：</p>` +
+                factors.map(f =>
+                    `<span class="factor">${f}</span>`
+                ).join("");
+        }
+
+        // 保留實體鍵盤操作
+        document.addEventListener("keydown", function(event) {
+            if (/^[0-9]$/.test(event.key)) {
+                pressDigit(event.key);
+            } else if (event.key === "Backspace") {
+                deleteDigit();
+            } else if (event.key === "Enter") {
+                findFactors();
+            } else if (event.key === "Escape") {
+                clearInput();
+            }
+        });
+    </script>
+
+<script>
+(() => {
+  const key = "math-toolkit-theme";
+  const button = document.getElementById("themeToggle");
+  if (!button) return;
+
+  function applyTheme(theme) {
+    document.body.classList.toggle("light-theme", theme === "light");
+    document.body.classList.toggle("dark-theme", theme === "dark");
+    button.textContent = theme === "light" ? "🌙 暗色" : "☀️ 亮色";
+    button.setAttribute("aria-label", theme === "light" ? "切換至暗色主題" : "切換至亮色主題");
+  }
+
+  let theme = new URLSearchParams(window.location.search).get("theme");
+  if (theme !== "light" && theme !== "dark") {
+    theme = "dark";
+    try { theme = localStorage.getItem(key) || "dark"; } catch (_) {}
+  }
+  applyTheme(theme);
+
+  button.addEventListener("click", () => {
+    const nextTheme = document.body.classList.contains("light-theme") ? "dark" : "light";
+    applyTheme(nextTheme);
+    try { localStorage.setItem(key, nextTheme); } catch (_) {}
+  });
+
+  window.addEventListener("storage", event => {
+    if (event.key === key && (event.newValue === "light" || event.newValue === "dark")) {
+      applyTheme(event.newValue);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

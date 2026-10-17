@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1～30 平方數抽考</title>
+<style>
+  :root { --blue:#2563eb; --ink:#172033; --muted:#64748b; --line:#dbe3ef; --bg:#f4f7fb; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Microsoft JhengHei",sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:760px; margin:28px auto; padding:20px; }
+  .panel { background:white; border:1px solid var(--line); border-radius:20px; padding:24px; box-shadow:0 8px 28px #14213d0b; }
+  h1 { margin:0 0 8px; font-size:clamp(1.5rem,4vw,2rem); }
+  .sub { color:var(--muted); margin:0 0 22px; }
+  .settings { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
+  label { display:block; font-weight:650; font-size:.95rem; }
+  select, input[type=number] { width:100%; margin-top:7px; padding:12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:white; }
+  .check { display:flex; gap:9px; align-items:center; font-weight:500; margin-top:12px; }
+  .check input { width:18px; height:18px; }
+  button { cursor:pointer; border:0; border-radius:11px; padding:12px 16px; font:inherit; font-weight:700; }
+  .primary { background:var(--blue); color:white; }
+  .secondary { background:#eaf0fb; color:#1e40af; }
+  .question { margin-top:18px; padding:26px 18px; border-radius:16px; background:#f7f9ff; text-align:center; }
+  .q-label { color:var(--muted); font-size:.95rem; }
+  .q { font-size:clamp(2rem,7vw,3.2rem); font-weight:800; margin:12px 0 22px; letter-spacing:.02em; }
+  .answer-row { display:flex; gap:10px; max-width:440px; margin:0 auto; }
+  .answer-row input { margin:0; text-align:center; font-size:1.3rem; min-width:0; }
+  .answer-row button { white-space:nowrap; }
+  .feedback { min-height:32px; margin:15px 0 0; font-weight:750; }
+  .good { color:#15803d; } .bad { color:#b91c1c; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:18px 0; }
+  .stat { background:white; border:1px solid var(--line); border-radius:13px; padding:13px; text-align:center; }
+  .stat span { display:block; color:var(--muted); font-size:.85rem; }
+  .stat strong { display:block; font-size:1.45rem; margin-top:4px; }
+  .bottom { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
+  .progress { height:8px; background:#e7edf6; border-radius:99px; overflow:hidden; margin-top:12px; }
+  .progress div { height:100%; background:var(--blue); width:0%; transition:width .2s; }
+  .hint { color:var(--muted); font-size:.9rem; margin-top:14px; text-align:center; }
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 20;
+    padding: 9px 13px; border: 1px solid #dbe3ef; border-radius: 999px;
+    background: white; color: #172033; font-size: 14px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 15px #14213d12;
+  }
+  body.light-theme { color-scheme: light; background: #f4f7fb; color: #172033; }
+  body.light-theme .panel, body.light-theme .stat { background: #fff; border-color: #dbe3ef; }
+  body.light-theme .question { background: #f7f9ff; }
+  body.light-theme .q-label, body.light-theme .sub, body.light-theme .hint, body.light-theme .stat span { color: #64748b; }
+  body.light-theme select, body.light-theme input[type=number] { color: #172033; background: #fff; border-color: #dbe3ef; }
+  body.light-theme .secondary { background: #eaf0fb; color: #1e40af; }
+  body.dark-theme { color-scheme: dark; --ink:#eef3ff; --muted:#a3afcf; --line:#354261; --bg:#080d1c; background:#080d1c; color:#eef3ff; }
+  body.dark-theme .panel { background:#121b33; border-color:#2b3858; box-shadow:0 12px 36px #0005; }
+  body.dark-theme .sub, body.dark-theme .q-label, body.dark-theme .hint, body.dark-theme .stat span { color:#a3afcf; }
+  body.dark-theme .stat { background:#0e172d; border-color:#2b3858; }
+  body.dark-theme .question { background:#0c1428; }
+  body.dark-theme select, body.dark-theme input[type=number] { color:#eef3ff; background:#0c1428; border-color:#394665; }
+  body.dark-theme .secondary { background:#202d4b; color:#d5ddff; }
+  body.dark-theme .progress { background:#26324e; }
+  body.dark-theme .theme-toggle { color:#eef3ff; background:#172442; border-color:#394665; }
+  @media (max-width:480px) { main { padding:12px; margin:8px auto; } .panel { padding:17px; } .answer-row { flex-direction:column; } }
+</style>
+</head>
+<body class="light-theme">
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="切換主題">🌙 暗色</button>
+<main>
+  <section class="panel">
+    <h1>平方數隨機抽考</h1>
+    <p class="sub">範圍 1～30｜平方數與平方根雙向練習</p>
+
+    <div class="settings">
+      <label>考試範圍
+        <select id="range">
+          <option value="10">1～10</option>
+          <option value="20">1～20</option>
+          <option value="30" selected>1～30</option>
+        </select>
+      </label>
+      <label>題目類型
+        <select id="mode">
+          <option value="both" selected>兩種混合</option>
+          <option value="square">平方：25² = ?</option>
+          <option value="root">平方根：625 = ?²</option>
+        </select>
+      </label>
+      <label>每回合題數
+        <select id="count">
+          <option value="10">10 題</option>
+          <option value="20">20 題</option>
+          <option value="30" selected>30 題</option>
+          <option value="all">範圍內全部題目</option>
+        </select>
+      </label>
+    </div>
+    <label class="check"><input type="checkbox" id="retryWrong" checked> 本回合結束後，再練習答錯的題目</label>
+    <div class="bottom" style="margin-top:14px">
+      <button class="primary" id="start">開始抽考／重新開始</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>目前題目</span><strong id="progressText">0 / 30</strong></div>
+      <div class="stat"><span>答對</span><strong id="correct">0</strong></div>
+      <div class="stat"><span>正確率</span><strong id="accuracy">—</strong></div>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+
+    <div class="question">
+      <div class="q-label" id="typeLabel">準備好了嗎？</div>
+      <div class="q" id="question">按「開始抽考」</div>
+      <div class="answer-row">
+        <input type="number" id="answer" inputmode="numeric" placeholder="輸入整數答案" autocomplete="off" disabled>
+        <button class="primary" id="submit" disabled>確認答案</button>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+    <div class="bottom">
+      <button class="secondary" id="skip" disabled>看答案／跳過</button>
+      <button class="secondary" id="next" disabled>下一題</button>
+    </div>
+    <p class="hint">例如：225 = □²，答案輸入 15；25² = ?，答案輸入 625。</p>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let questions = [], index = 0, correct = 0, attempted = 0, wrong = [], locked = false, retryRound = false;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function buildQuestions() {
+    const max = Number($('range').value), mode = $('mode').value;
+    const pool = [];
+    for (let n = 1; n <= max; n++) {
+      if (mode === 'both' || mode === 'square') pool.push({ type:'square', n, answer:n*n });
+      if (mode === 'both' || mode === 'root') pool.push({ type:'root', n, answer:n });
+    }
+    shuffle(pool);
+    const selectedCount = $('count').value === 'all' ? pool.length : Number($('count').value);
+    return pool.slice(0, Math.min(selectedCount, pool.length));
+  }
+
+  function start() {
+    questions = buildQuestions(); index = 0; correct = 0; attempted = 0; wrong = []; locked = false; retryRound = false;
+    $('feedback').textContent = '';
+    $('answer').disabled = false; $('answer').readOnly = false; $('submit').disabled = false; $('skip').disabled = false; $('next').disabled = true;
+    render();
+  }
+
+  function render() {
+    if (index >= questions.length) return finish();
+    locked = false;
+    const q = questions[index];
+    $('typeLabel').textContent = retryRound ? '錯題複習' : `第 ${index + 1} 題，共 ${questions.length} 題`;
+    $('question').textContent = q.type === 'square' ? `${q.n}² = ?` : `${q.n*q.n} = □²`;
+    $('answer').value = '';
+    $('answer').disabled = false; $('answer').readOnly = false; $('submit').disabled = false; $('skip').disabled = false; $('next').disabled = true;
+    $('feedback').textContent = '';
+    $('answer').focus();
+    updateStats();
+  }
+
+  function updateStats() {
+    $('progressText').textContent = `${Math.min(index, questions.length)} / ${questions.length}`;
+    $('correct').textContent = correct;
+    $('accuracy').textContent = attempted ? `${Math.round(correct / attempted * 100)}%` : '—';
+    $('bar').style.width = `${questions.length ? Math.min(index / questions.length * 100, 100) : 0}%`;
+  }
+
+  function check() {
+    if (locked || index >= questions.length) return;
+    const raw = $('answer').value.trim();
+    if (raw === '') { $('feedback').textContent = '請先輸入答案。'; $('feedback').className = 'feedback bad'; return; }
+    const q = questions[index], value = Number(raw);
+    locked = true; attempted++;
+    if (Number.isInteger(value) && value === q.answer) {
+      correct++;
+      $('feedback').textContent = '答對了！';
+      $('feedback').className = 'feedback good';
+    } else {
+      wrong.push(q);
+      $('feedback').textContent = `答錯了，正確答案是 ${q.answer}。`;
+      $('feedback').className = 'feedback bad';
+    }
+    $('answer').disabled = false; $('answer').readOnly = true; $('submit').disabled = true; $('skip').disabled = true; $('next').disabled = false;
+    $('next').textContent = index === questions.length - 1 ? '查看結果' : '下一題';
+    updateStats();
+  }
+
+  function skip() {
+    if (locked || index >= questions.length) return;
+    const q = questions[index];
+    wrong.push(q);
+    locked = true;
+    $('feedback').textContent = `正確答案是 ${q.answer}。這題已列入錯題。`;
+    $('feedback').className = 'feedback bad';
+    $('answer').disabled = false; $('answer').readOnly = true; $('submit').disabled = true; $('skip').disabled = true; $('next').disabled = false;
+    $('next').textContent = index === questions.length - 1 ? '查看結果' : '下一題';
+  }
+
+  function advance() {
+    if (!locked) return;
+    index++;
+    render();
+  }
+
+  function finish() {
+    $('typeLabel').textContent = retryRound ? '錯題複習完成' : '本回合完成';
+    $('question').textContent = attempted ? `${correct} / ${attempted} 題答對` : '本回合沒有作答';
+    $('feedback').textContent = attempted ? `正確率 ${Math.round(correct / attempted * 100)}%。${wrong.length ? `還有 ${wrong.length} 題需要加強。` : '全部答對，太棒了！'}` : '';
+    $('feedback').className = 'feedback';
+    $('answer').disabled = true; $('answer').readOnly = false; $('submit').disabled = true; $('skip').disabled = true; $('next').disabled = true;
+    $('bar').style.width = '100%';
+    $('progressText').textContent = `${questions.length} / ${questions.length}`;
+    $('correct').textContent = correct;
+    $('accuracy').textContent = attempted ? `${Math.round(correct / attempted * 100)}%` : '—';
+    if (!retryRound && $('retryWrong').checked && wrong.length) {
+      $('next').disabled = false; $('next').textContent = `再練 ${wrong.length} 題錯題`;
+    } else {
+      $('feedback').textContent += ' 按「開始抽考／重新開始」可再抽一回合。';
+    }
+  }
+
+  function beginRetry() {
+    questions = shuffle([...wrong]); wrong = []; index = 0; correct = 0; attempted = 0; retryRound = true;
+    $('next').onclick = advance;
+    render();
+  }
+
+  $('start').addEventListener('click', start);
+  $('submit').addEventListener('click', check);
+  $('skip').addEventListener('click', skip);
+  $('next').addEventListener('click', () => {
+    if (index >= questions.length && !retryRound && $('retryWrong').checked && wrong.length) beginRetry();
+    else advance();
+  });
+  $('answer').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (locked) {
+        advance();
+      } else {
+        check();
+      }
+    }
+  });
+})();
+</script>
+
+<script>
+(() => {
+  const key = "math-toolkit-theme";
+  const button = document.getElementById("themeToggle");
+  if (!button) return;
+
+  function applyTheme(theme) {
+    document.body.classList.toggle("light-theme", theme === "light");
+    document.body.classList.toggle("dark-theme", theme === "dark");
+    button.textContent = theme === "light" ? "🌙 暗色" : "☀️ 亮色";
+    button.setAttribute("aria-label", theme === "light" ? "切換至暗色主題" : "切換至亮色主題");
+  }
+
+  let theme = new URLSearchParams(window.location.search).get("theme");
+  if (theme !== "light" && theme !== "dark") {
+    theme = "dark";
+    try { theme = localStorage.getItem(key) || "dark"; } catch (_) {}
+  }
+  applyTheme(theme);
+
+  button.addEventListener("click", () => {
+    const nextTheme = document.body.classList.contains("light-theme") ? "dark" : "light";
+    applyTheme(nextTheme);
+    try { localStorage.setItem(key, nextTheme); } catch (_) {}
+  });
+
+  window.addEventListener("storage", event => {
+    if (event.key === key && (event.newValue === "light" || event.newValue === "dark")) {
+      applyTheme(event.newValue);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
